@@ -67,6 +67,8 @@ public class EasySynth : ModuleRules
 				"UEOpenExrRTTI",
 				// JSON parsing
 				"Json", "JsonUtilities",
+                // Camera Calibration and Lens Distortion
+                "CameraCalibrationCore"
 				// ... add private dependencies that you statically link with here ...
 			}
 			);

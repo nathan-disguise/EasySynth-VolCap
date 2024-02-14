@@ -19,6 +19,7 @@ const FString FWidgetManager::TextureStyleSemanticName(TEXT("Semantic color text
 const FString FWidgetManager::JpegFormatName(TEXT("jpeg"));
 const FString FWidgetManager::PngFormatName(TEXT("png"));
 const FString FWidgetManager::ExrFormatName(TEXT("exr"));
+const FString FWidgetManager::InstantNGPFormatName(TEXT("InstantNGP"));
 const FIntPoint FWidgetManager::DefaultOutputImageResolution(1920, 1080);
 
 #define LOCTEXT_NAMESPACE "FWidgetManager"
@@ -44,6 +45,9 @@ FWidgetManager::FWidgetManager() :
 
 	// No need to ever release the TextureStyleManager and the SequenceRenderer,
 	// as the FWidgetManager lives as long as the plugin inside the editor
+
+    // Prepare content of the Volumetric Format combo box.
+    VolumetricOutputNames.Add(MakeShared<FString>(InstantNGPFormatName));
 
 	// Prepare content of the texture style checkout combo box
 	TextureStyleNames.Add(MakeShared<FString>(TextureStyleColorName));
@@ -191,6 +195,28 @@ TSharedRef<SDockTab> FWidgetManager::OnSpawnPluginTab(const FSpawnTabArgs& Spawn
 					.Text(LOCTEXT("PickMeshTextureStyleComboBoxText", "Pick a mesh texture style"))
 				]
 			]
+            +SScrollBox::Slot()
+            .Padding(2)
+            [
+                SNew(STextBlock)
+                    .Text(LOCTEXT("PickVolumetricFormatSectionTitle", "Pick Volumetric Format."))
+            ]
+            + SScrollBox::Slot()
+            .Padding(2)
+            [
+                SNew(SComboBox<TSharedPtr<FString>>)
+                    .OptionsSource(&VolumetricOutputNames)
+                    .ContentPadding(2)
+                    .OnGenerateWidget_Lambda(
+                        [](TSharedPtr<FString> StringItem)
+                        { return SNew(STextBlock).Text(FText::FromString(*StringItem)); })
+                    .OnSelectionChanged_Raw(this, &FWidgetManager::OnVolumetricFormatComboBoxSelectionChanged)
+                    .Content()
+                    [
+                        SNew(STextBlock)
+                            .Text(FText::FromString(VolumetricManager.GetExportFormatString()))
+                    ]
+            ]
 			+SScrollBox::Slot()
 			.Padding(2)
 			[
@@ -373,6 +399,18 @@ void FWidgetManager::OnTextureStyleComboBoxSelectionChanged(
 	}
 }
 
+void FWidgetManager::OnVolumetricFormatComboBoxSelectionChanged(TSharedPtr<FString> StringItem, ESelectInfo::Type SelectInfo)
+{
+    if (StringItem.IsValid())
+    {
+        UE_LOG(LogEasySynth, Log, TEXT("%s: Volumetric format selected: %s"), *FString(__FUNCTION__), **StringItem)
+        if (*StringItem == InstantNGPFormatName) 
+        {
+            VolumetricManager.SetExportFormat(EVolumetricFormat::INSTANTNGP);
+        }
+    }
+}
+
 FString FWidgetManager::GetSequencerPath() const
 {
 	if (LevelSequenceAssetData.IsValid())
@@ -454,6 +492,11 @@ bool FWidgetManager::GetIsRenderImagesEnabled() const
 FReply FWidgetManager::OnRenderImagesClicked()
 {
 	ULevelSequence* LevelSequence = Cast<ULevelSequence>(LevelSequenceAssetData.GetAsset());
+
+    // Start by writing our Volumetric Source files.
+    // If this fails we should stop the render and require this information.
+
+
 	// Make a copy of the SequenceRendererTargets to avoid
 	// them being changed through the UI during rendering
 	if (!SequenceRenderer->RenderSequence(

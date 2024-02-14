@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"Version": 6,
 	"VersionName": "4.0.1",
-	"EngineVersion" : "5.3",
+	"EngineVersion": "5.3",
 	"FriendlyName": "EasySynth",
 	"Description": "An Unreal Engine plugin for easy creation of image datasets",
 	"Category": "Other",
@@ -20,13 +20,21 @@
 			"Name": "MovieRenderPipeline",
 			"Enabled": true
 		},
+		{
+			"Name": "CameraCalibrationCore",
+			"Enabled": true
+		}
 	],
 	"Modules": [
 		{
 			"Name": "EasySynth",
 			"Type": "Editor",
 			"LoadingPhase": "PostDefault",
-			"WhitelistPlatforms": [ "Win64", "Win32", "Linux" ]
+			"PlatformAllowList": [
+				"Win64",
+				"Win32",
+				"Linux"
+			]
 		}
 	]
 }
