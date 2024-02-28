@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-
 #include "CameraRigRosInterface.generated.h"
+
+#include "CameraRigData.h"
 
 class UCameraComponent;
 
@@ -67,15 +67,15 @@ public:
 
 	/** Exports camera rig into a ROS JSON file */
 	bool ExportCameraRig(
-		const FString& OutputDir,
-		TArray<UCameraComponent*> RigCameras,
+        const FString& OutputDir,
+		FCameraRigData RigCameras,
 		const FIntPoint& SensorSize);
 
 private:
 	/** Adds lines describing a single camera to the output array */
 	void AddCamera(
 		const int CameraId,
-		UCameraComponent* Camera,
+		FCameraRigData::FCameraData Camera,
 		const FIntPoint& SensorSize,
 		FRosJsonContent& RosJsonContent);
 };

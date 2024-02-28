@@ -187,15 +187,15 @@ FReply FCameraRigRosInterface::OnImportCameraRigClicked()
 
 bool FCameraRigRosInterface::ExportCameraRig(
 	const FString& OutputDir,
-	TArray<UCameraComponent*> RigCameras,
+    FCameraRigData RigCameras,
 	const FIntPoint& SensorSize)
 {
 	FRosJsonContent RosJsonContent;
 
-	for (int i = 0; i < RigCameras.Num(); i++)
+	for (int i = 0; i < RigCameras.Cameras.Num(); i++)
 	{
 		// Add each camera
-		AddCamera(i, RigCameras[i], SensorSize, RosJsonContent);
+		AddCamera(i, RigCameras.Cameras[i], SensorSize, RosJsonContent);
 	}
 
 	FString JsonString;
@@ -219,25 +219,22 @@ bool FCameraRigRosInterface::ExportCameraRig(
 
 void FCameraRigRosInterface::AddCamera(
 	const int CameraId,
-	UCameraComponent* Camera,
+    FCameraRigData::FCameraData Camera,
 	const FIntPoint& SensorSize,
 	FRosJsonContent& RosJsonContent)
 {
 	FRosJsonCamera RosJsonCamera;
 
-	// Add intrinsics
-	const double FocalLength = SensorSize.X / UKismetMathLibrary::DegTan(Camera->FieldOfView / 2.0f) / 2.0f;
-	const double PrincipalPointX = SensorSize.X / 2.0f;
-	const double PrincipalPointY = SensorSize.Y / 2.0f;
+	// Add intrinsic matrix.
 	RosJsonCamera.intrinsics.Init(0, 9);
-	RosJsonCamera.intrinsics[0] = FocalLength;
-	RosJsonCamera.intrinsics[2] = PrincipalPointX;
-	RosJsonCamera.intrinsics[4] = FocalLength;
-	RosJsonCamera.intrinsics[5] = PrincipalPointY;
+	RosJsonCamera.intrinsics[0] = Camera.FocalLength;;
+	RosJsonCamera.intrinsics[2] = Camera.PrincipalPointX;
+	RosJsonCamera.intrinsics[4] = Camera.FocalLength;;
+	RosJsonCamera.intrinsics[5] = Camera.PrincipalPointY;
 	RosJsonCamera.intrinsics[8] = 1.0f;
 
 	// Prepare transform
-	FTransform Transform = Camera->GetRelativeTransform();
+	FTransform Transform = Camera.Transform;
 	// Remove the scaling that makes no impact on camera functionality,
 	// but my be used to scale the camera placeholder mesh as user desires
 	Transform.SetScale3D(FVector(1.0f, 1.0f, 1.0f));
@@ -259,7 +256,7 @@ void FCameraRigRosInterface::AddCamera(
 	RosJsonCamera.sensor_size.Add(SensorSize.X);
 	RosJsonCamera.sensor_size.Add(SensorSize.Y);
 
-	RosJsonContent.cameras.Add(FPathUtils::GetCameraName(Camera), RosJsonCamera);
+	RosJsonContent.cameras.Add(Camera.CameraName, RosJsonCamera);
 }
 
 #undef LOCTEXT_NAMESPACE

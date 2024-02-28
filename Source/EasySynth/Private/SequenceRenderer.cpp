@@ -13,6 +13,7 @@
 #include "RendererTargets/CameraPoseExporter.h"
 #include "RendererTargets/RendererTarget.h"
 #include "TextureStyles/SemanticCsvInterface.h"
+#include "CameraRig/CameraRigConstructor.h"
 
 
 const float FRendererTargetOptions::DefaultDepthRangeMetersValue = 100.0f;
@@ -229,16 +230,22 @@ bool USequenceRenderer::RenderSequence(
 		return A.GetReadableName().Compare(B.GetReadableName()) < 0;
 	});
 
-	// Export camera rig information
+    // Obtain Camera Rig and Pose Information into CameraRigData.
+    FCameraRigData cameraRigData = CameraRigHelpers::constructCameraRig(RenderingSequence, RigCameras, OutputResolution);
+
+	// Export camera rig information using CameraRigData
 	FCameraRigRosInterface CameraRigRosInterface;
-	if (!CameraRigRosInterface.ExportCameraRig(RenderingDirectory, RigCameras, OutputResolution))
+	if (!CameraRigRosInterface.ExportCameraRig(RenderingDirectory, cameraRigData, OutputResolution))
 	{
 		ErrorMessage = "Could not save the camera rig ROS JSON file";
 		UE_LOG(LogEasySynth, Error, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage)
 		return false;
 	}
 
-	// Export camera rig poses if requested
+    // Export as a Volumetric Data format.
+
+
+	// Export camera rig poses if requested (TODO - Rework this to export camera poses.)
 	if (RendererTargetOptions.ExportCameraPoses())
 	{
 		FCameraPoseExporter CameraPoseExporter;
