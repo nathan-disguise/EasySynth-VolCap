@@ -2,9 +2,10 @@
 
 #pragma once
 
+#include "CameraRigData.h"
+
 #include "CameraRigRosInterface.generated.h"
 
-#include "CameraRigData.h"
 
 class UCameraComponent;
 

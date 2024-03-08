@@ -27,6 +27,8 @@ struct FCameraRigData
         double FocalLengthY;
 		double PrincipalPointX;
 		double PrincipalPointY;
+        double vFov;
+        double hFov;
 		FIntPoint SensorSize;
 		FTransform Transform;
         TArray<FCameraPoses> Poses;

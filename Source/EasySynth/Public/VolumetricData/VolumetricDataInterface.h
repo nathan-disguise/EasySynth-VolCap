@@ -14,7 +14,6 @@ public:
 	VolumentricDataInterface() = default;
 	virtual ~VolumentricDataInterface() = default;
 
-    virtual bool exportVolumetricData(const FString& OutputDir,
-        const FCameraRigData& RigCameras,
-        const FIntPoint& SensorSize) = 0;
+    virtual bool ExportVolumetricData(const FString& OutputDir,
+        const FCameraRigData& RigCameras) = 0;
 };

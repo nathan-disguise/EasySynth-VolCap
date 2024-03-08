@@ -227,9 +227,9 @@ void FCameraRigRosInterface::AddCamera(
 
 	// Add intrinsic matrix.
 	RosJsonCamera.intrinsics.Init(0, 9);
-	RosJsonCamera.intrinsics[0] = Camera.FocalLength;;
+	RosJsonCamera.intrinsics[0] = Camera.FocalLength;
 	RosJsonCamera.intrinsics[2] = Camera.PrincipalPointX;
-	RosJsonCamera.intrinsics[4] = Camera.FocalLength;;
+	RosJsonCamera.intrinsics[4] = Camera.FocalLength;
 	RosJsonCamera.intrinsics[5] = Camera.PrincipalPointY;
 	RosJsonCamera.intrinsics[8] = 1.0f;
 

@@ -15,6 +15,8 @@
 #include "TextureStyles/SemanticCsvInterface.h"
 #include "CameraRig/CameraRigConstructor.h"
 
+#include "VolumetricData/VolumetricDataInstantNGP.h"
+
 
 const float FRendererTargetOptions::DefaultDepthRangeMetersValue = 100.0f;
 const float FRendererTargetOptions::DefaultOpticalFlowScaleValue = 1.0f;
@@ -243,21 +245,27 @@ bool USequenceRenderer::RenderSequence(
 	}
 
     // Export as a Volumetric Data format.
-
+    VolumetricDataInstantNGP volumetricData;
+    if (!volumetricData.ExportVolumetricData(RenderingDirectory, cameraRigData)) 
+    {
+        ErrorMessage = "Could not export InstantNGP file.";
+        UE_LOG(LogEasySynth, Error, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage);
+        return false;
+    }
 
 	// Export camera rig poses if requested (TODO - Rework this to export camera poses.)
-	if (RendererTargetOptions.ExportCameraPoses())
-	{
-		FCameraPoseExporter CameraPoseExporter;
-		UCameraComponent* NoSpecificCamera = nullptr;
-		if (!CameraPoseExporter.ExportCameraPoses(
-			RenderingSequence, OutputResolution, RenderingDirectory, NoSpecificCamera))
-		{
-			ErrorMessage = "Could not export camera rig poses";
-			UE_LOG(LogEasySynth, Error, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage)
-			return false;
-		}
-	}
+	//if (RendererTargetOptions.ExportCameraPoses())
+	//{
+		//FCameraPoseExporter CameraPoseExporter;
+		//UCameraComponent* NoSpecificCamera = nullptr;
+		//if (!CameraPoseExporter.ExportCameraPoses(
+		//	RenderingSequence, OutputResolution, RenderingDirectory, NoSpecificCamera))
+		//{
+		//	ErrorMessage = "Could not export camera rig poses";
+		//	UE_LOG(LogEasySynth, Error, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage)
+		//	return false;
+		//}
+	//}
 
 	// Export semantic class information if semantic rendering is selected
 	if (RendererTargetOptions.TargetSelected(FRendererTargetOptions::TargetType::SEMANTIC_IMAGE))
