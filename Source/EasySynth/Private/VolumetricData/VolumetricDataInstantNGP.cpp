@@ -33,7 +33,20 @@ bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, co
         {
             // Treat this as a singular frame. With a singular pose.
             CameraEntry->SetStringField(TEXT("file_path"), Camera.CameraName / TEXT("/ColorImage/") / TEXT(""));
-            FMatrix cameraTransform = Camera.Transform.ToMatrixNoScale();
+            FTransform initTransform = Camera.Transform;
+            initTransform.SetLocation(initTransform.GetLocation() * 0.01f);
+            FMatrix cameraTransform = initTransform.ToMatrixNoScale().GetTransposed();
+            cameraTransform = cameraTransform * FMatrix(
+                FPlane(-1, 0, 0, 0),
+                FPlane(0, 0, 1, 0),
+                FPlane(0, 1, 0, 0),
+                FPlane(0, 0, 0, 1)
+            ) * FMatrix(
+                FPlane(0, 0, 1, 0),
+                FPlane(1, 0, 0, 0),
+                FPlane(0, 1, 0, 0),
+                FPlane(0, 0, 0, 1)
+            ) * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, -90.0f)).ToMatrix();
             TArray<TSharedPtr<FJsonValue>> transform;
             for (int i = 0; i < 4; i++)
             {
@@ -44,6 +57,8 @@ bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, co
                 }
                 transform.Add(MakeShareable(new FJsonValueArray(row)));
             }
+            // Swap the Y and Z axis.
+            //transform.Swap(1, 2);
             CameraEntry->SetArrayField(TEXT("transform_matrix"), transform);
             frames.Add(MakeShareable(new FJsonValueObject(CameraEntry)));
         }
