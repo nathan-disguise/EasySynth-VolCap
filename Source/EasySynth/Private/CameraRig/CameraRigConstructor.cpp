@@ -18,6 +18,7 @@ FCameraRigData CameraRigHelpers::constructCameraRig(ULevelSequence* RenderingSeq
 {
     FCameraRigData rigData;
     
+    rigData.sequenceName = RenderingSequense->GetName();
     for (auto& entry : CameraRig) 
     {
         FCameraRigData::FCameraData cameraDataEntry;
@@ -35,6 +36,13 @@ FCameraRigData CameraRigHelpers::constructCameraRig(ULevelSequence* RenderingSeq
         cameraDataEntry.FocalLengthY = SensorSize.Y / UKismetMathLibrary::DegTan(vFov / 2.0f) / 2.0f;
         cameraDataEntry.Poses = getCameraPoses(RenderingSequense, entry);
         rigData.Cameras.Add(cameraDataEntry);
+    }
+
+    // Get the frame range.
+    if(!getSequenceRange(RenderingSequense, rigData.frameStart, rigData.frameEnd))
+    {
+        UE_LOG(LogEasySynth, Error, TEXT("%s: Could not get sequence range."), *FString(__FUNCTION__));
+        return rigData;
     }
 
     return rigData;
@@ -138,12 +146,40 @@ TArray<FCameraRigData::FCameraPoses> CameraRigHelpers::getCameraPoses(ULevelSequ
 
             for (FTransform& Transform : TempTransforms)
             {
-
                 AccumulatedFrameTime += FrameTime;
-                Poses.Add(FCameraRigData::FCameraPoses{ Transform, AccumulatedFrameTime });
+                Poses.Add(FCameraRigData::FCameraPoses{ Transform, AccumulatedFrameTime, TickNumber / TicksPerFrame });
             }
         }
     }
 
     return Poses;
+}
+
+bool CameraRigHelpers::getSequenceRange(ULevelSequence* RenderingSequense, FFrameNumber& frameStart, FFrameNumber& frameEnd)
+{
+    FSequencerWrapper SequencerWrapper;
+    if (!SequencerWrapper.OpenSequence(RenderingSequense))
+    {
+        UE_LOG(LogEasySynth, Error, TEXT("%s: Sequencer wrapper opening failed."), *FString(__FUNCTION__))
+            return false;
+    }
+    TArray<UMovieSceneCameraCutSection*>& CutSections = SequencerWrapper.GetMovieSceneCutSections();
+    if (CutSections.Num() == 0)
+    {
+        UE_LOG(LogEasySynth, Error, TEXT("%s: No cut sections found"), *FString(__FUNCTION__))
+        return false;
+    }
+    UMovieSceneCameraCutSection* CutSection = CutSections[0]; // TODO - Should we do this for all cut sections.
+    
+    // Calculate the frame range using the frame ticks.
+    const FFrameRate DisplayRate = SequencerWrapper.GetMovieScene()->GetDisplayRate();
+    // Get level sequence ticks per second
+    // Engine likes to update much more often than the video frame rate,
+    // so this is needed to calculate engine ticks that correspond to frames
+    const FFrameRate TickResolutions = SequencerWrapper.GetMovieScene()->GetTickResolution();
+    // Calculate ticks per frame
+    const int TicksPerFrame = TickResolutions.AsDecimal() / DisplayRate.AsDecimal();
+    frameStart = CutSection->GetTrueRange().GetLowerBoundValue() / TicksPerFrame;
+    frameEnd = CutSection->GetTrueRange().GetUpperBoundValue() / TicksPerFrame;
+    return true;
 }

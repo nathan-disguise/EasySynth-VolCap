@@ -14,4 +14,5 @@ public:
 
 private:
     static TArray<FCameraRigData::FCameraPoses> getCameraPoses(ULevelSequence* RenderingSequense, UCameraComponent* TargetCamera);
+    static bool getSequenceRange(ULevelSequence* RenderingSequense, FFrameNumber& frameStart, FFrameNumber& frameEnd);
 };

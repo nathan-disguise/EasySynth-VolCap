@@ -17,6 +17,7 @@ struct FCameraRigData
     {
         FTransform Transform;
         double timestamp;
+        FFrameNumber frameNumber;
     };
 
 	struct FCameraData
@@ -38,4 +39,11 @@ struct FCameraRigData
 	 * Array of cameras inside the camera rig
 	 */
 	TArray<FCameraData> Cameras;
+
+    /**
+     * Frame ranges in the sequence.
+     */
+    FFrameNumber frameStart;
+    FFrameNumber frameEnd;
+    FString sequenceName;
 };
