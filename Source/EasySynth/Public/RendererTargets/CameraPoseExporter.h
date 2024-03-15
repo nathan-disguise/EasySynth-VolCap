@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 
 #include "SequencerWrapper.h"
+#include "CameraRig/CameraRigData.h"
 
 class UCameraComponent;
 class ULevelSequence;
@@ -17,15 +18,13 @@ class ULevelSequence;
 class FCameraPoseExporter
 {
 public:
-	/**
-	 * Export camera poses from the sequence to a file,
+    /**
+     * Export camera poses from the sequence to a file,
 	 * to export rig poses, pass nullptr for the CameraComponent
-	 */
-	bool ExportCameraPoses(
-		ULevelSequence* LevelSequence,
-		const FIntPoint OutputImageResolution,
-		const FString& OutputDir,
-		UCameraComponent* CameraComponent);
+     */
+    bool ExportCameraRigPoses(
+        const FString& FilePath,
+        const FCameraRigData& rigData);
 
 private:
 	/** Extract camera transforms using the sequencer wrapper */

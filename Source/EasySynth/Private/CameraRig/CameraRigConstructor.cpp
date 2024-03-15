@@ -19,6 +19,7 @@ FCameraRigData CameraRigHelpers::constructCameraRig(ULevelSequence* RenderingSeq
     FCameraRigData rigData;
     
     rigData.sequenceName = RenderingSequense->GetName();
+    rigData.RigPoses = getCameraPoses(RenderingSequense, nullptr);
     for (auto& entry : CameraRig) 
     {
         FCameraRigData::FCameraData cameraDataEntry;
@@ -39,7 +40,7 @@ FCameraRigData CameraRigHelpers::constructCameraRig(ULevelSequence* RenderingSeq
     }
 
     // Get the frame range.
-    if(!getSequenceRange(RenderingSequense, rigData.frameStart, rigData.frameEnd))
+    if (!getSequenceRange(RenderingSequense, rigData.frameStart, rigData.frameEnd))
     {
         UE_LOG(LogEasySynth, Error, TEXT("%s: Could not get sequence range."), *FString(__FUNCTION__));
         return rigData;
@@ -79,7 +80,7 @@ TArray<FCameraRigData::FCameraPoses> CameraRigHelpers::getCameraPoses(ULevelSequ
         UCameraComponent* Camera = CutSection->GetFirstCamera(
             *SequencerWrapper.GetSequencer(),
             SequencerWrapper.GetSequencer()->GetFocusedTemplateID());
-        if (Camera != TargetCamera)
+        if (!Camera)
         {
             UE_LOG(LogEasySynth, Error, TEXT("%s: Cut section camera component is null"), *FString(__FUNCTION__))
             continue;
@@ -147,6 +148,14 @@ TArray<FCameraRigData::FCameraPoses> CameraRigHelpers::getCameraPoses(ULevelSequ
             for (FTransform& Transform : TempTransforms)
             {
                 AccumulatedFrameTime += FrameTime;
+                if (TargetCamera)
+                {
+                    // HACK: Unreals sequencer is a pain because it only supports one camera per cut section.
+                    // Therefore to get the transforms of the respective cameras we should look at transferring the properties
+                    // of the component cameras into the principal camera and then restoring it.
+                    // Do this on a case by case basis for each camera component.
+                    Transform.Accumulate(TargetCamera->GetRelativeTransform());
+                }
                 Poses.Add(FCameraRigData::FCameraPoses{ Transform, AccumulatedFrameTime, TickNumber / TicksPerFrame });
             }
         }
@@ -169,17 +178,21 @@ bool CameraRigHelpers::getSequenceRange(ULevelSequence* RenderingSequense, FFram
         UE_LOG(LogEasySynth, Error, TEXT("%s: No cut sections found"), *FString(__FUNCTION__))
         return false;
     }
-    UMovieSceneCameraCutSection* CutSection = CutSections[0]; // TODO - Should we do this for all cut sections.
-    
+
     // Calculate the frame range using the frame ticks.
     const FFrameRate DisplayRate = SequencerWrapper.GetMovieScene()->GetDisplayRate();
     // Get level sequence ticks per second
     // Engine likes to update much more often than the video frame rate,
     // so this is needed to calculate engine ticks that correspond to frames
     const FFrameRate TickResolutions = SequencerWrapper.GetMovieScene()->GetTickResolution();
-    // Calculate ticks per frame
     const int TicksPerFrame = TickResolutions.AsDecimal() / DisplayRate.AsDecimal();
-    frameStart = CutSection->GetTrueRange().GetLowerBoundValue() / TicksPerFrame;
-    frameEnd = CutSection->GetTrueRange().GetUpperBoundValue() / TicksPerFrame;
+    frameStart = TNumericLimits<FFrameNumber>::Max();
+    frameEnd = TNumericLimits<FFrameNumber>::Min();
+    for (auto CutSection : CutSections)
+    {
+        frameStart = std::min(CutSection->GetTrueRange().GetLowerBoundValue() / TicksPerFrame, frameStart);
+        frameEnd = std::max(CutSection->GetTrueRange().GetUpperBoundValue() / TicksPerFrame, frameEnd);
+    }
+
     return true;
 }

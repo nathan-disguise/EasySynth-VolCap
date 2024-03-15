@@ -254,18 +254,17 @@ bool USequenceRenderer::RenderSequence(
     }
 
 	// Export camera rig poses if requested (TODO - Rework this to export camera poses.)
-	//if (RendererTargetOptions.ExportCameraPoses())
-	//{
-	//	FCameraPoseExporter CameraPoseExporter;
-	//	UCameraComponent* NoSpecificCamera = nullptr;
-	//	if (!CameraPoseExporter.ExportCameraPoses(
-	//		RenderingSequence, OutputResolution, RenderingDirectory, NoSpecificCamera))
-	//	{
-	//		ErrorMessage = "Could not export camera rig poses";
-	//		UE_LOG(LogEasySynth, Error, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage)
-	//		return false;
-	//	}
-	//}
+	if (RendererTargetOptions.ExportCameraPoses())
+	{
+		FCameraPoseExporter CameraPoseExporter;
+        // Export the Poses for my camera.
+        if (!CameraPoseExporter.ExportCameraRigPoses(RenderingDirectory, cameraRigData))
+        {
+            ErrorMessage = "Could not export camera rig poses";
+            UE_LOG(LogEasySynth, Error, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage)
+            return false;
+        }
+	}
 
 	// Export semantic class information if semantic rendering is selected
 	if (RendererTargetOptions.TargetSelected(FRendererTargetOptions::TargetType::SEMANTIC_IMAGE))
@@ -328,18 +327,6 @@ void USequenceRenderer::FindNextCamera()
 		// Transfer the transform of the current camera to the first one that is used for rendering
 		RigCameras[0]->SetRelativeTransform(RigCameras[CurrentRigCameraId]->GetRelativeTransform());
 		RigCameras[0]->SetFieldOfView(RigCameras[CurrentRigCameraId]->FieldOfView);
-	}
-
-	// Export camera poses if requested
-	if (RendererTargetOptions.ExportCameraPoses())
-	{
-		FCameraPoseExporter CameraPoseExporter;
-		if (!CameraPoseExporter.ExportCameraPoses(
-			RenderingSequence, OutputResolution, RenderingDirectory, RigCameras[CurrentRigCameraId]))
-		{
-			ErrorMessage = "Could not export camera poses";
-			return BroadcastRenderingFinished(false);
-		}
 	}
 
 	// Prepare the targets queue
