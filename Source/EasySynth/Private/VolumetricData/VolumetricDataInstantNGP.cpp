@@ -1,11 +1,13 @@
 #include "VolumetricData\VolumetricDataInstantNGP.h"
 
+#include "SequenceRendererTargetOptions.h"
+
 #include "Kismet/KismetMathLibrary.h"
 #include "JsonObjectConverter.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
-bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, const FCameraRigData& RigCameras)
+bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, const FCameraRigData& RigCameras, const FRendererTargetOptions& RenderTargetOptions)
 {
     // Convert our RigCamera data to UStructs.
     FString fileContents;
@@ -18,7 +20,7 @@ bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, co
             for (FFrameNumber frameID = RigCameras.frameStart; frameID < RigCameras.frameEnd; frameID++)
             {
                 TSharedPtr<FJsonObject> CameraEntry = MakeShareable(new FJsonObject);
-                CameraEntry->SetStringField(TEXT("file_path"), Camera.CameraName / TEXT("/ColorImage/") / RigCameras.sequenceName + TEXT(".") + FString::Printf(TEXT("%04d"), frameID.Value) + TEXT(".jpeg"));
+                CameraEntry->SetStringField(TEXT("file_path"), Camera.CameraName / TEXT("/ColorImage/") / RigCameras.sequenceName + TEXT(".") + FString::Printf(TEXT("%04d"), frameID.Value) + getFileExtenstionString(RenderTargetOptions.OutputFormat(FRendererTargetOptions::COLOR_IMAGE)));
                 CameraEntry->SetNumberField(TEXT("camera_angle_x"), UKismetMathLibrary::DegreesToRadians(Camera.hFov));
                 CameraEntry->SetNumberField(TEXT("camera_angle_y"), UKismetMathLibrary::DegreesToRadians(Camera.vFov));
                 CameraEntry->SetNumberField(TEXT("fl_x"), Camera.FocalLengthX);
@@ -81,4 +83,22 @@ bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, co
     }
 
     return true;
+}
+
+FString VolumetricDataInstantNGP::getFileExtenstionString(EImageFormat imageFormat)
+{
+    switch (imageFormat) 
+    {
+        case EImageFormat::JPEG:
+            return TEXT(".jpeg");
+            break;
+        case EImageFormat::PNG:
+            return TEXT(".png");
+            break;
+        case EImageFormat::EXR:
+            return TEXT(".exr");
+            break;
+    }
+
+    return FString();
 }

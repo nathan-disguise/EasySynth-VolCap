@@ -6,7 +6,7 @@
 
 /**
  * Structure that contains intrinsic and extrinsic information
- * for each camera inside the camera rig
+ * for each camera inside the camera rig and the camera rig itself.
  */
 struct FCameraRigData
 {
@@ -39,6 +39,11 @@ struct FCameraRigData
 	 * Array of cameras inside the camera rig
 	 */
 	TArray<FCameraData> Cameras;
+
+    /**
+        * Array of rig poses if avalible.
+     */
+    TArray<FCameraPoses> RigPoses;
 
     /**
      * Frame ranges in the sequence.

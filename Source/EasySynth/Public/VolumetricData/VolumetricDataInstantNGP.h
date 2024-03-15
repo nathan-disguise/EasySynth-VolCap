@@ -13,5 +13,8 @@ public:
     ~VolumetricDataInstantNGP() = default;
 
     virtual bool ExportVolumetricData(const FString& OutputDir,
-               const FCameraRigData& RigCameras) override;
+               const FCameraRigData& RigCameras, const FRendererTargetOptions& RenderTargetOptions) override;
+
+private:
+    FString getFileExtenstionString(EImageFormat imageFormat);
 };

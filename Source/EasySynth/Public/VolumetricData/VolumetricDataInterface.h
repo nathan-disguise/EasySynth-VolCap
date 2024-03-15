@@ -4,6 +4,8 @@
 
 #include "CameraRig/CameraRigData.h"
 
+class FRendererTargetOptions;
+
 /**
  * Class containing interface methods for generating
  * Volumetric Data Files for export. (e.g.InstantNGP)
@@ -15,5 +17,5 @@ public:
 	virtual ~VolumentricDataInterface() = default;
 
     virtual bool ExportVolumetricData(const FString& OutputDir,
-        const FCameraRigData& RigCameras) = 0;
+        const FCameraRigData& RigCameras, const FRendererTargetOptions& RenderTargetOptions) = 0;
 };
