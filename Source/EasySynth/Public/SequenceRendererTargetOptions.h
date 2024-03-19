@@ -12,7 +12,7 @@ class FRendererTargetOptions
 public:
     /** The enum containing all supported rendering targets */
     enum TargetType { COLOR_IMAGE, DEPTH_IMAGE, NORMAL_IMAGE, OPTICAL_FLOW_IMAGE, SEMANTIC_IMAGE, COUNT };
-    enum EVolumetricFormat { NONE, INSTANT_NGP };
+    enum EVolumetricFormat { NONE, INSTANT_NGP, FORMAT_COUNT };
 
     FRendererTargetOptions();
 
@@ -53,6 +53,12 @@ public:
     void GetSelectedTargets(
         UTextureStyleManager* TextureStyleManager,
         TQueue<TSharedPtr<FRendererTarget>>& OutTargetsQueue) const;
+
+    /** Get the volumetric output format */
+    EVolumetricFormat GetVolumetricOutputFormat() const { return VolumetricOutputFormat; }
+
+    /** Set the volumetric output format */
+    void SetVolumetricOutputFormat(const EVolumetricFormat Format) { VolumetricOutputFormat = Format; }
 
 private:
     /** Get the renderer target object from the target type id */

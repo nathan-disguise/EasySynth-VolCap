@@ -19,6 +19,9 @@ const FString FWidgetManager::TextureStyleSemanticName(TEXT("Semantic color text
 const FString FWidgetManager::JpegFormatName(TEXT("jpeg"));
 const FString FWidgetManager::PngFormatName(TEXT("png"));
 const FString FWidgetManager::ExrFormatName(TEXT("exr"));
+const FString FWidgetManager::NoneVolExportName(TEXT("None"));
+const FString FWidgetManager::InstantNGPVolExportName(TEXT("Instant NGP"));
+
 const FIntPoint FWidgetManager::DefaultOutputImageResolution(1920, 1080);
 
 #define LOCTEXT_NAMESPACE "FWidgetManager"
@@ -49,10 +52,14 @@ FWidgetManager::FWidgetManager() :
 	TextureStyleNames.Add(MakeShared<FString>(TextureStyleColorName));
 	TextureStyleNames.Add(MakeShared<FString>(TextureStyleSemanticName));
 
-	// Prepare content of the outut image format combo box
+	// Prepare content of the output image format combo box
 	OutputFormatNames.Add(MakeShared<FString>(JpegFormatName));
 	OutputFormatNames.Add(MakeShared<FString>(PngFormatName));
 	OutputFormatNames.Add(MakeShared<FString>(ExrFormatName));
+
+    // Prepare content of the volumetric export format combo box
+    VolumetricExportFormatNames.Add(MakeShared<FString>(NoneVolExportName));
+    VolumetricExportFormatNames.Add(MakeShared<FString>(InstantNGPVolExportName));
 
 	// Initialize SemanticClassesWidgetManager
 	SemanticsWidget.SetTextureStyleManager(TextureStyleManager);
@@ -191,6 +198,27 @@ TSharedRef<SDockTab> FWidgetManager::OnSpawnPluginTab(const FSpawnTabArgs& Spawn
 					.Text(LOCTEXT("PickMeshTextureStyleComboBoxText", "Pick a mesh texture style"))
 				]
 			]
+            +SScrollBox::Slot()
+            .Padding(2)
+            [
+                SNew(STextBlock)
+                    .Text(LOCTEXT("VolumetricFormatExportSectionTitle", "Pick a Volumetric Export Format"))
+            ]
+            +SScrollBox::Slot() 
+            .Padding(2)
+            [
+                SNew(SComboBox<TSharedPtr<FString>>)
+                    .OptionsSource(&VolumetricExportFormatNames)
+                    .ContentPadding(2)
+                    .OnGenerateWidget_Lambda(
+                        [](TSharedPtr<FString> StringItem)
+                        { return SNew(STextBlock).Text(FText::FromString(*StringItem)); })
+                    .OnSelectionChanged_Raw(this, &FWidgetManager::OnVolumetricExportFormatSelectionChanged, SequenceRendererTargets.GetVolumetricOutputFormat())
+                    [
+                        SNew(STextBlock)
+                            .Text_Raw(this, &FWidgetManager::SelectedVolumetricOutputFormat, SequenceRendererTargets.GetVolumetricOutputFormat())
+                    ]
+            ]
 			+SScrollBox::Slot()
 			.Padding(2)
 			[
@@ -417,6 +445,45 @@ void FWidgetManager::OnOutputFormatSelectionChanged(
 		UE_LOG(LogEasySynth, Error, TEXT("%s: Invalid output format selection '%s'"),
 			*FString(__FUNCTION__), **StringItem);
 	}
+}
+
+void FWidgetManager::OnVolumetricExportFormatSelectionChanged(
+    TSharedPtr<FString> StringItem,
+    ESelectInfo::Type SelectInfo, 
+    const FRendererTargetOptions::EVolumetricFormat VolDataType)
+{
+    if (*StringItem == NoneVolExportName)
+    {
+        SequenceRendererTargets.SetVolumetricOutputFormat(FRendererTargetOptions::EVolumetricFormat::NONE);
+    }
+    else if (*StringItem == InstantNGPVolExportName)
+    {
+        SequenceRendererTargets.SetVolumetricOutputFormat(FRendererTargetOptions::EVolumetricFormat::INSTANT_NGP);
+    }
+    else
+    {
+        UE_LOG(LogEasySynth, Error, TEXT("%s: Invalid output format selection '%s'"),
+                       *FString(__FUNCTION__), **StringItem);
+    }
+}
+
+FText FWidgetManager::SelectedVolumetricOutputFormat(const FRendererTargetOptions::EVolumetricFormat VolDataType) const
+{
+    FRendererTargetOptions::EVolumetricFormat VolFormat = SequenceRendererTargets.GetVolumetricOutputFormat();
+
+    switch (VolFormat)
+    {
+        case FRendererTargetOptions::EVolumetricFormat::NONE:
+            return FText::FromString(NoneVolExportName);
+            break;
+        case FRendererTargetOptions::EVolumetricFormat::INSTANT_NGP:
+            return FText::FromString(InstantNGPVolExportName);
+            break;
+        default:
+            UE_LOG(LogEasySynth, Error, TEXT("%s: Invalid target type '%d'"),
+                *FString(__FUNCTION__), VolDataType);
+            return FText::GetEmpty();
+    }
 }
 
 FText FWidgetManager::SelectedOutputFormat(const FRendererTargetOptions::TargetType TargetType) const

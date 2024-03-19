@@ -59,6 +59,15 @@ private:
 		ESelectInfo::Type SelectInfo,
 		const FRendererTargetOptions::TargetType TargetType);
 
+    // Callback function handling the choosing of the output format inside the combo box
+    void OnVolumetricExportFormatSelectionChanged(
+        TSharedPtr<FString> StringItem,
+        ESelectInfo::Type SelectInfo,
+        const FRendererTargetOptions::EVolumetricFormat VolDataType);
+
+    /** Returns the selected volumetric ouput format of the target */
+    FText SelectedVolumetricOutputFormat(const FRendererTargetOptions::EVolumetricFormat VolDataType) const;
+
 	/** Returns the selected output format of the target */
 	FText SelectedOutputFormat(const FRendererTargetOptions::TargetType TargetType) const;
 
@@ -108,6 +117,9 @@ private:
 	/** FStrings output image format names referenced by the combo box */
 	TArray<TSharedPtr<FString>> OutputFormatNames;
 
+    /** FStrings Export Formats referenced by the combo box */
+    TArray<TSharedPtr<FString>> VolumetricExportFormatNames;
+
 	/** Currently selected sequencer asset data */
 	FAssetData LevelSequenceAssetData;
 
@@ -138,14 +150,14 @@ private:
 	/** The name of the texture style representing semantic colors */
 	static const FString TextureStyleSemanticName;
 
-	/** The name of the JPEG output format */
+	/** The name of the output formats */
 	static const FString JpegFormatName;
-
-	/** The name of the PNG output format */
 	static const FString PngFormatName;
-
-	/** The name of the EXR output format */
 	static const FString ExrFormatName;
+
+    /** The name of the export formats */
+    static const FString NoneVolExportName;
+    static const FString InstantNGPVolExportName;
 
 	/** Default output image resolution */
 	static const FIntPoint DefaultOutputImageResolution;

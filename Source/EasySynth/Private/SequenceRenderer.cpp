@@ -244,25 +244,34 @@ bool USequenceRenderer::RenderSequence(
 		return false;
 	}
 
-    // Export as a Volumetric Data format based on selection.
-    VolumetricDataInstantNGP volumetricDataInterface;
-    if (!volumetricDataInterface.ExportVolumetricData(RenderingDirectory, cameraRigData, RendererTargetOptions))
+    if (RendererTargetOptions.GetVolumetricOutputFormat() != FRendererTargetOptions::EVolumetricFormat::NONE) 
     {
-        ErrorMessage = "Could not export InstantNGP file.";
-        UE_LOG(LogEasySynth, Error, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage);
-        return false;
+        // Export as a Volumetric Data format based on selection.
+        VolumetricDataInstantNGP volumetricDataInterface;
+        if (!volumetricDataInterface.ExportVolumetricData(RenderingDirectory, cameraRigData, RendererTargetOptions))
+        {
+            ErrorMessage = "Could not export InstantNGP file.";
+            UE_LOG(LogEasySynth, Error, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage);
+            return false;
+        }
     }
 
-	// Export camera rig poses if requested (TODO - Rework this to export camera poses.)
+	// Export camera rig poses if requested.
 	if (RendererTargetOptions.ExportCameraPoses())
 	{
 		FCameraPoseExporter CameraPoseExporter;
+        // Do we have camera rig poses?
+        if (cameraRigData.RigPoses.Num() == 0) 
+        {
+            ErrorMessage = "No Rig Camera Poses Found.";
+            UE_LOG(LogEasySynth, Warning, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage)
+        }
+
         // Export the Poses for my camera.
         if (!CameraPoseExporter.ExportCameraRigPoses(RenderingDirectory, cameraRigData))
         {
             ErrorMessage = "Could not export camera rig poses";
             UE_LOG(LogEasySynth, Error, TEXT("%s: %s"), *FString(__FUNCTION__), *ErrorMessage)
-            return false;
         }
 	}
 
