@@ -9,6 +9,13 @@
 
 bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, const FCameraRigData& RigCameras, const FRendererTargetOptions& RenderTargetOptions)
 {
+    // If were not exporting the color image, then we can't export the volumetric data.
+    if (!RenderTargetOptions.TargetSelected(FRendererTargetOptions::COLOR_IMAGE))
+    {
+        UE_LOG(LogEasySynth, Error, TEXT("%s: Cannot export volumetric data without color image. Please select color image export."), *FString(__FUNCTION__));
+        return false;
+    }
+
     // Convert our RigCamera data to UStructs.
     FString fileContents;
     TSharedPtr<FJsonObject> exportData = MakeShareable(new FJsonObject);
@@ -21,12 +28,12 @@ bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, co
             {
                 TSharedPtr<FJsonObject> CameraEntry = MakeShareable(new FJsonObject);
                 CameraEntry->SetStringField(TEXT("file_path"), Camera.CameraName / TEXT("/ColorImage/") / RigCameras.sequenceName + TEXT(".") + FString::Printf(TEXT("%04d"), frameID.Value) + getFileExtenstionString(RenderTargetOptions.OutputFormat(FRendererTargetOptions::COLOR_IMAGE)));
-                CameraEntry->SetNumberField(TEXT("camera_angle_x"), UKismetMathLibrary::DegreesToRadians(Camera.hFov));
-                CameraEntry->SetNumberField(TEXT("camera_angle_y"), UKismetMathLibrary::DegreesToRadians(Camera.vFov));
+                CameraEntry->SetNumberField(TEXT("camera_angle_x"), Camera.hFov);
+                CameraEntry->SetNumberField(TEXT("camera_angle_y"), Camera.vFov);
                 CameraEntry->SetNumberField(TEXT("fl_x"), Camera.FocalLengthX);
                 CameraEntry->SetNumberField(TEXT("fl_y"), Camera.FocalLengthY);
-                CameraEntry->SetNumberField(TEXT("cx"), Camera.PrincipalPointX);
-                CameraEntry->SetNumberField(TEXT("cy"), Camera.PrincipalPointY);
+                //CameraEntry->SetNumberField(TEXT("cx"), Camera.PrincipalPointX);
+                //CameraEntry->SetNumberField(TEXT("cy"), Camera.PrincipalPointY);
                 CameraEntry->SetNumberField(TEXT("w"), Camera.SensorSize.X);
                 CameraEntry->SetNumberField(TEXT("h"), Camera.SensorSize.Y);
 
@@ -45,12 +52,12 @@ bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, co
                     FPlane(0, 0, 1, 0),
                     FPlane(0, 1, 0, 0),
                     FPlane(0, 0, 0, 1)
-                ) * FMatrix(
-                    FPlane(0, 0, 1, 0),
-                    FPlane(1, 0, 0, 0),
-                    FPlane(0, 1, 0, 0),
-                    FPlane(0, 0, 0, 1)
-                ) * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, -90.0f)).ToMatrix();
+                     ) * FMatrix(
+                        FPlane(0, 0, 1, 0),
+                        FPlane(1, 0, 0, 0),
+                        FPlane(0, 1, 0, 0),
+                        FPlane(0, 0, 0, 1)
+                         ) * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)).ToMatrix();
                 TArray<TSharedPtr<FJsonValue>> transform;
                 for (int i = 0; i < 4; i++)
                 {

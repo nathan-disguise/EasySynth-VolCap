@@ -26,15 +26,15 @@ FCameraRigData CameraRigHelpers::constructCameraRig(ULevelSequence* RenderingSeq
         cameraDataEntry.CameraName = entry->GetName();
         cameraDataEntry.Transform = entry->GetRelativeTransform();
         cameraDataEntry.SensorSize = SensorSize;
-        cameraDataEntry.PrincipalPointX = SensorSize.X / 2.0f;
+        cameraDataEntry.PrincipalPointX = SensorSize.X / 2.0f; // Might want to remove this.
         cameraDataEntry.PrincipalPointY = SensorSize.Y / 2.0f;
-        float hFov = entry->FieldOfView;
-        float vFov = 2 * UKismetMathLibrary::DegAtan(UKismetMathLibrary::DegTan(hFov / 2.0f) * entry->AspectRatio);
+        float hFov = UKismetMathLibrary::DegreesToRadians(entry->FieldOfView);
+        float vFov = 2 * UKismetMathLibrary::Atan(UKismetMathLibrary::Tan(hFov / 2.0f) * entry->AspectRatio);
         cameraDataEntry.hFov = hFov;
         cameraDataEntry.vFov = vFov;
-        cameraDataEntry.FocalLengthX = SensorSize.X / UKismetMathLibrary::DegTan(hFov / 2.0f) / 2.0f;
+        cameraDataEntry.FocalLengthX = SensorSize.X / (UKismetMathLibrary::Tan(hFov / 2.0f) * 2.0f);
         cameraDataEntry.FocalLength = cameraDataEntry.FocalLengthX;
-        cameraDataEntry.FocalLengthY = SensorSize.Y / UKismetMathLibrary::DegTan(vFov / 2.0f) / 2.0f;
+        cameraDataEntry.FocalLengthY = SensorSize.Y / (UKismetMathLibrary::Tan(vFov / 2.0f) * 2.0f);
         cameraDataEntry.Poses = getCameraPoses(RenderingSequense, entry);
         rigData.Cameras.Add(cameraDataEntry);
     }
