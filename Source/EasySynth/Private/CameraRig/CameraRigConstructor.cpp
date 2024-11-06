@@ -24,7 +24,9 @@ FCameraRigData CameraRigHelpers::constructCameraRig(ULevelSequence* RenderingSeq
     {
         FCameraRigData::FCameraData cameraDataEntry;
         cameraDataEntry.CameraName = entry->GetName();
-        cameraDataEntry.Transform = entry->GetRelativeTransform();
+        cameraDataEntry.Transform = entry->GetComponentTransform();
+        cameraDataEntry.location = entry->GetComponentLocation();
+        cameraDataEntry.rotation = entry->GetComponentRotation();
         cameraDataEntry.SensorSize = SensorSize;
         cameraDataEntry.PrincipalPointX = SensorSize.X / 2.0f; // Might want to remove this.
         cameraDataEntry.PrincipalPointY = SensorSize.Y / 2.0f;

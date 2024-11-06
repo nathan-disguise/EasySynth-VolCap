@@ -31,6 +31,8 @@ struct FCameraRigData
         double vFov;
         double hFov;
 		FIntPoint SensorSize;
+        FRotator  rotation;
+        FVector  location;
 		FTransform Transform;
         TArray<FCameraPoses> Poses;
 	};

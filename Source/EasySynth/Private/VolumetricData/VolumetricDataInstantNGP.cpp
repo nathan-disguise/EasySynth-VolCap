@@ -44,20 +44,15 @@ bool VolumetricDataInstantNGP::ExportVolumetricData(const FString& OutputDir, co
                 CameraEntry->SetNumberField(TEXT("p2"), 0.0f);
 
                 // Treat this as a singular frame. With a singular pose.
-                FTransform initTransform = Camera.Transform;
-                initTransform.SetLocation(initTransform.GetLocation() * 0.01f);
-                FMatrix cameraTransform = initTransform.ToMatrixNoScale().GetTransposed();
-                cameraTransform = cameraTransform * FMatrix(
-                    FPlane(-1, 0, 0, 0),
-                    FPlane(0, 0, 1, 0),
+                FMatrix cameraTransform = FRotationMatrix(Camera.rotation) * FTranslationMatrix(Camera.location * 0.01f);
+                FMatrix changeOfBasis = FMatrix(
                     FPlane(0, 1, 0, 0),
+                    FPlane(0, 0, 1, 0),
+                    FPlane(-1, 0, 0, 0),
                     FPlane(0, 0, 0, 1)
-                     ) * FMatrix(
-                        FPlane(0, 0, 1, 0),
-                        FPlane(1, 0, 0, 0),
-                        FPlane(0, 1, 0, 0),
-                        FPlane(0, 0, 0, 1)
-                         ) * FQuat::MakeFromEuler(FVector(0.0f, 0.0f, 90.0f)).ToMatrix();
+                );
+                cameraTransform = changeOfBasis * cameraTransform * changeOfBasis.Inverse();
+                cameraTransform = cameraTransform.GetTransposed();
                 TArray<TSharedPtr<FJsonValue>> transform;
                 for (int i = 0; i < 4; i++)
                 {
